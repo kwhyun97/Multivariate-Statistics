@@ -1,0 +1,1078 @@
+---
+title: "Assignment 1"
+subtitle: "Statistics 32950"
+author: "Ki Hyun"
+date: "Due: 09:00 (CT) 2023-03-28"
+output: pdf_document
+---
+
+```{r packages, include = FALSE}
+library(dplyr)
+```
+
+
+## 1. 
+
+### (a)
+
+```{r q1_a, echo = FALSE}
+df <- tibble(R = c(2, 4, 0),
+             B = c(1, 3, 5))
+
+df2 <- table(df$R, df$B)/3
+
+df2
+```
+
+- All the rows and columns each add up to $\frac{1}{3}$.
+
+### (b)
+
+Given from the joint probability that all the $B$ numbers are strictly larger 
+than the $R$ numbers, I should choose blue under Rule-I
+
+### (c)
+
+If I choose blue, my wining probability is:
+
+$$
+\begin{aligned}
+&\mathbf{P}(B = 1, R < 1) +
+\mathbf{P}(B = 3, R < 3) +
+\mathbf{P}(B = 5, R < 5) \\
+=& \mathbf{P}(B = 1) \times \mathbf{P}(R = 0) +
+\mathbf{P}(B = 3) \times \mathbf{P}(R \neq 4)  +
+\mathbf{P}(B = 5) \\
+&(\because B \perp \!\!\! \perp R) \\
+=& \frac{1}{3} \times \frac{1}{3} +
+\frac{1}{3} \times \frac{2}{3} +
+\frac{1}{3} \\ 
+=& \frac{2}{3}
+\end{aligned}
+$$
+
+Since there is no draw, my winning probability if I choose red would be:
+
+$$
+1 - \frac{2}{3} = \frac{1}{3}
+$$
+
+Therefore, I should choose blue again under Rule-II
+
+### (d)
+
+Similarly, if I choose blue:
+
+$$
+\begin{aligned}
+&\mathbf{P}(B = 1, R < 1) +
+\mathbf{P}(B = 3, R < 3) +
+\mathbf{P}(B = 5, R < 5) \\
+=& \mathbf{P}(B = 1) \times \mathbf{P}(R = 0 \mid B = 1) +
+\mathbf{P}(B = 3) \times \mathbf{P}(R \neq 4 \mid B = 3)  +
+\mathbf{P}(B = 5) \\
+=& \frac{1}{3} \times \frac{1}{2} +
+\frac{1}{3} \times 1 +
+\frac{1}{3} \\ 
+=& \frac{5}{6}
+\end{aligned}
+$$
+
+Since there is no draw, my winning probability if I choose red would be:
+
+$$
+1 - \frac{5}{6} = \frac{1}{6}
+$$
+
+Therefore, I should choose blue again under Rule-III
+
+\newpage
+
+## 2.
+
+```{r q2}
+ladyrun = read.table("ladyrun23.dat")
+colnames(ladyrun)=c("Country","100m","200m","400m",
+                    "800m","1500m","3000m","Marathon")
+```
+
+### (a)
+
+```{r q2_a}
+summary(ladyrun[-1])
+```
+
+The sample mean of "Country" is not meaningful since it is not a numeric 
+variable, and serves more as an index
+
+### (b)
+
+```{r q2_b_1}
+cov(ladyrun[-1])
+```
+
+```{r q2_b_2}
+cor(ladyrun[-1], method = 'pearson')
+```
+
+### (c)
+
+```{r q2_c}
+cor(ladyrun[-1], method = 'kendall')
+```
+
+### (d)
+
+```{r q2_d}
+cor(ladyrun[-1], method = 'spearman')
+```
+
+### (e)
+
+```{r q2_e_1}
+cor(log(ladyrun[-1]), method = 'pearson')
+```
+
+```{r q2_e_2}
+cor(log(ladyrun[-1]), method = 'kendall')
+```
+
+```{r q2_e_3}
+cor(log(ladyrun[-1]), method = 'spearman')
+```
+
+The results differ slightly from (b) since the actual value of each observation
+changes. However, since it is a monotonic transformation, the results do not 
+differ by much.
+
+On the other hand, since log is a monotonic transformation, the results from
+(c) and (d) does not change.
+
+### (f)
+
+```{r q2_f_1}
+q2f <- eigen(cor(ladyrun[-1], method = 'pearson'))
+round(q2f$values, 2)
+```
+
+```{r q2_f_2}
+q2f$vectors
+```
+
+```{r q2_f_3}
+sum(q2f$values)
+```
+
+The sum of the eigenvalues is equal to the dimension of the variables
+(i.e., `100m`, `200m`, `400m`, `800m`, `1500m`, `3000m`, `Marathon`).
+
+\newpage
+
+## 3.
+
+### (a)
+
+$$
+\begin{aligned}
+1 &= \mathbf{P}(U) \\
+&= \mathbf{P}(X = 1) +
+\mathbf{P}(X = 2) +
+\mathbf{P}(X = 3) \\
+&= 2c + 3c + 4c
+=9c \\
+\therefore
+c &= \frac{1}{9}
+\end{aligned}
+$$
+
+Moreover,
+
+$$
+f_X(x) = \mathbf{P}(X = x)
+= \begin{cases}
+\frac{2}{9} & x = 1 \\
+\frac{3}{9} & x = 2 \\
+\frac{4}{9} & x = 3 \\
+\end{cases}
+$$
+
+$$
+f_Y(y)= \mathbf{P}(Y = y)
+= \begin{cases}
+\frac{3}{9} & y = 1 \\
+\frac{3}{9} & y = 2 \\
+\frac{2}{9} & y = 3 \\
+\frac{1}{9} & y = 4
+\end{cases}
+$$
+
+### (b)
+
+$$
+\begin{aligned}
+g(x) &= \mathbf{E}(Y \mid X = x) \\
+&= 1 \times \mathbf{P}(Y = 1 \mid X = x) +
+2 \times \mathbf{P}(Y = 2 \mid X = x) +
+3 \times \mathbf{P}(Y = 3 \mid X = x) +
+4 \times \mathbf{P}(Y = 4 \mid X = x) \\
+&= \frac{\mathbf{P}(Y = 1, X = x) + 2\mathbf{P}(Y = 2, X = x) + 
+3\mathbf{P}(Y = 3, X = x) + 4\mathbf{P}(Y = 4, X = x)}{\mathbf{P}(X = x)}
+\end{aligned}
+$$
+
+Therefore,
+
+$$
+\begin{aligned}
+g(1) &= \frac{\mathbf{P}(Y = 1, X = 1) + 2\mathbf{P}(Y = 2, X = 1) + 
+3\mathbf{P}(Y = 3, X = 1) + 4\mathbf{P}(Y = 4, X = 1)}{\mathbf{P}(X = 1)} \\
+&= \frac{\frac{1}{9} + \frac{2}{9}}{\frac{2}{9}} \\
+&= \frac{3}{2}
+\end{aligned}
+$$
+
+$$
+\begin{aligned}
+g(2) &= \frac{\mathbf{P}(Y = 1, X = 2) + 2\mathbf{P}(Y = 2, X = 2) + 
+3\mathbf{P}(Y = 3, X = 2) + 4\mathbf{P}(Y = 4, X = 2)}{\mathbf{P}(X = 2)} \\
+&= \frac{\frac{1}{9} + \frac{2}{9} + \frac{3}{9}}{\frac{3}{9}} \\
+&= 2
+\end{aligned}
+$$
+
+$$
+\begin{aligned}
+g(3) &= \frac{\mathbf{P}(Y = 1, X = 3) + 2\mathbf{P}(Y = 2, X = 3) + 
+3\mathbf{P}(Y = 3, X = 3) + 4\mathbf{P}(Y = 4, X = 3)}{\mathbf{P}(X = 3)} \\
+&= \frac{\frac{1}{9} + \frac{2}{9} + \frac{3}{9} + \frac{4}{9}}{\frac{4}{9}} \\
+&= \frac{5}{2}
+\end{aligned}
+$$
+
+### (c)
+
+$$
+\begin{aligned}
+&\mathbf{E}(Y^2 \mid X = x) \\
+=& 1 \times \mathbf{P}(Y = 1 \mid X = x) +
+2^2 \times \mathbf{P}(Y = 2 \mid X = x) +
+3^2 \times \mathbf{P}(Y = 3 \mid X = x) +
+4^2 \times \mathbf{P}(Y = 4 \mid X = x) \\
+=& \frac{\mathbf{P}(Y = 1, X = x) + 4\mathbf{P}(Y = 2, X = x) + 
+9\mathbf{P}(Y = 3, X = x) + 16\mathbf{P}(Y = 4, X = x)}{\mathbf{P}(X = x)}
+\end{aligned}
+$$
+
+Therefore, for $X = 1$:
+
+$$
+\begin{aligned}
+&\mathbf{E}(Y^2 \mid X = 1) \\
+=& \frac{\mathbf{P}(Y = 1, X = 1) + 4\mathbf{P}(Y = 2, X = 1) + 
+9\mathbf{P}(Y = 3, X = 1) + 16\mathbf{P}(Y = 4, X = 1)}{\mathbf{P}(X = 1)} \\
+=& \frac{\frac{1}{9} + \frac{4}{9}}{\frac{2}{9}} \\
+=& \frac{5}{2}
+\end{aligned}
+$$
+
+$$
+\begin{aligned}
+\therefore
+Var(Y \mid X = 1) &= \mathbf{E}(Y^2 \mid X = 1) -
+\left(\mathbf{E}(Y \mid X = 1)\right)^2 \\
+&= \frac{5}{2} - \left(\frac{3}{2}\right)^2 \\
+&= \frac{1}{4}
+\end{aligned}
+$$
+
+For $X = 2$:
+
+$$
+\begin{aligned}
+&\mathbf{E}(Y^2 \mid X = 2) \\
+=& \frac{\mathbf{P}(Y = 1, X = 2) + 4\mathbf{P}(Y = 2, X = 2) + 
+9\mathbf{P}(Y = 3, X = 2) + 16\mathbf{P}(Y = 4, X = 2)}{\mathbf{P}(X = 2)} \\
+=& \frac{\frac{1}{9} + \frac{4}{9} + \frac{9}{9}}{\frac{3}{9}} \\
+=& \frac{14}{3}
+\end{aligned}
+$$
+
+$$
+\begin{aligned}
+\therefore
+Var(Y \mid X = 2) &= \mathbf{E}(Y^2 \mid X = 2) -
+\left(\mathbf{E}(Y \mid X = 2)\right)^2 \\
+&= \frac{14}{3} - \left(2\right)^2 \\
+&= \frac{2}{3}
+\end{aligned}
+$$
+
+For $X = 3$:
+
+$$
+\begin{aligned}
+&\mathbf{E}(Y^2 \mid X = 3) \\
+=& \frac{\mathbf{P}(Y = 1, X = 3) + 4\mathbf{P}(Y = 2, X = 3) + 
+9\mathbf{P}(Y = 3, X = 3) + 16\mathbf{P}(Y = 4, X = 3)}{\mathbf{P}(X = 3)} \\
+=& \frac{\frac{1}{9} + \frac{4}{9} + \frac{9}{9} + \frac{16}{9}}{\frac{4}{9}} \\
+=& \frac{15}{2}
+\end{aligned}
+$$
+
+$$
+\begin{aligned}
+\therefore
+Var(Y \mid X = 3) &= \mathbf{E}(Y^2 \mid X = 3) -
+\left(\mathbf{E}(Y \mid X = 3)\right)^2 \\
+&= \frac{15}{2} - \left(\frac{5}{2}\right)^2 \\
+&= \frac{5}{4}
+\end{aligned}
+$$
+
+### (d)
+
+$$
+\begin{aligned}
+\mathbf{E}\left[\mathbf{E}(Y \mid X)\right] &=
+\mathbf{E}\left[g(X)\right] \\
+&= g(1) \times \mathbf{P}(X = 1) +
+g(2) \times \mathbf{P}(X = 2) +
+g(3) \times \mathbf{P}(X = 3) \\
+&= \frac{3}{2} \times \frac{2}{9} +
+2 \times \frac{3}{9} +
+\frac{5}{2} \times \frac{4}{9} \\
+&= \frac{19}{9}
+\end{aligned}
+$$
+
+$$
+\begin{aligned}
+\mathbf{E}(Y) =& \sum_{y}y f_Y(y) \\
+=& 1 \times \frac{3}{9} +
+2 \times \frac{3}{9} +
+3 \times \frac{2}{9} +
+4 \times \frac{1}{9} \\
+=& \frac{19}{9}
+\end{aligned}
+$$
+
+### (e)
+
+$$
+\begin{aligned}
+Var\left[\mathbf{E}(Y \mid X)\right] &=
+Var\left[g(X)\right] \\
+&= \left(g(1) - \mathbf{E}(g(X))\right)^2 \times \mathbf{P}(X = 1) +
+\left(g(2) - \mathbf{E}(g(X))\right)^2 \times \mathbf{P}(X = 2) +
+\left(g(3) - \mathbf{E}(g(X))\right)^2 \times \mathbf{P}(X = 3) \\
+&= \left(\frac{3}{2} - \frac{19}{9}\right)^2 \times \frac{2}{9} +
+\left(2 - \frac{19}{9}\right)^2 \times \frac{3}{9} +
+\left(\frac{5}{2} - \frac{19}{9}\right)^2 \times \frac{4}{9} \\
+&= \frac{25}{162}
+\end{aligned}
+$$
+
+$$
+\begin{aligned}
+Var(Y) =& Var\left[\mathbf{E}(Y \mid X)\right] +
+\mathbf{E}\left[Var(Y \mid X)\right] \\
+=& \frac{25}{162} +
+\frac{1}{4} \times \frac{2}{9} +
+\frac{2}{3} \times \frac{3}{9} +
+\frac{5}{4} \times \frac{4}{9} \\
+=& \frac{80}{81}
+\end{aligned}
+$$
+
+\newpage
+
+## 4.
+
+### (a)
+
+#### i.
+
+$$
+\begin{aligned}
+|\mathbf{A} - \lambda \mathbf{I}| &= 0 \\
+\Leftrightarrow
+\left|
+\left[ \begin{matrix}
+1 - \lambda & \rho \\
+\rho & 1 - \lambda
+\end{matrix}
+\right]
+\right| &= 0 \\
+\end{aligned}
+$$
+
+$$
+\begin{aligned}
+\Leftrightarrow &
+(1 - \lambda)^2 - \rho^2 = 0 \\
+\Leftrightarrow &
+(1 - \rho - \lambda)
+(1 + \rho - \lambda) = 0
+\end{aligned}
+$$
+
+Therefore, the two eigenvalues are $\lambda_1 = 1 + \rho$ and 
+$\lambda_2 = 1 - \rho$.
+
+#### ii.
+
+For $\lambda_1$, if we let 
+$\vec{v_1} = \left( \begin{matrix} x \\ y \end{matrix} \right)$:
+
+$$
+\begin{aligned}
+\mathbf{A}\vec{v_1} &= \lambda_1 \vec{v_1} \\
+\Leftrightarrow
+\left[ \begin{matrix}
+1  & \rho \\
+\rho & 1 
+\end{matrix} \right]
+\left( \begin{matrix} 
+x \\ y 
+\end{matrix} \right) &=
+\left( \begin{matrix} 
+(1 + \rho)x \\ (1 + \rho)y 
+\end{matrix} \right) \\
+\Leftrightarrow
+\left( \begin{matrix} 
+x + \rho y \\ \rho x + y 
+\end{matrix} \right) &=
+\left( \begin{matrix} 
+(1 + \rho)x \\ (1 + \rho)y 
+\end{matrix} \right) \\
+\Leftrightarrow
+\left( \begin{matrix} 
+\rho y \\ \rho x
+\end{matrix} \right) &=
+\left( \begin{matrix} 
+\rho x \\ \rho y
+\end{matrix} \right)
+\end{aligned}
+$$
+
+The relationship revealed from above is $x = y$. Therefore, a unit-length
+eigenvector($\vec{v_1}$) woud be:
+
+$$
+\vec{v_1} = \left( \begin{matrix} 
+\frac{1}{\sqrt{2}} \\ \frac{1}{\sqrt{2}}
+\end{matrix} \right)
+$$
+
+For $\lambda_2$, if we let 
+$\vec{v_2} = \left( \begin{matrix} x \\ y \end{matrix} \right)$:
+
+$$
+\begin{aligned}
+\mathbf{A}\vec{v_2} &= \lambda_2 \vec{v_2} \\
+\Leftrightarrow
+\left[ \begin{matrix}
+1  & \rho \\
+\rho & 1 
+\end{matrix} \right]
+\left( \begin{matrix} 
+x \\ y 
+\end{matrix} \right) &=
+\left( \begin{matrix} 
+(1 - \rho)x \\ (1 - \rho)y 
+\end{matrix} \right) \\
+\Leftrightarrow
+\left( \begin{matrix} 
+x + \rho y \\ \rho x + y 
+\end{matrix} \right) &=
+\left( \begin{matrix} 
+(1 - \rho)x \\ (1 - \rho)y 
+\end{matrix} \right) \\
+\Leftrightarrow
+\left( \begin{matrix} 
+\rho y \\ \rho x
+\end{matrix} \right) &=
+\left( \begin{matrix} 
+-\rho x \\ -\rho y
+\end{matrix} \right)
+\end{aligned}
+$$
+
+The relationship revealed from above is $y = -x$. Therefore, a unit-length
+eigenvector($\vec{v_2}$) woud be:
+
+$$
+\vec{v_2} = \left( \begin{matrix} 
+\frac{1}{\sqrt{2}} \\ -\frac{1}{\sqrt{2}}
+\end{matrix} \right)
+$$
+
+Now to check $\vec{v_1}$ and $\vec{v_2}$ are orthogonal:
+
+$$
+\vec{v_1} \cdot \vec{v_2} =
+\frac{1}{\sqrt{2}} \times \frac{1}{\sqrt{2}}
++ \frac{1}{\sqrt{2}} \times \left(-\frac{1}{\sqrt{2}}\right)
+= 0
+$$
+
+#### iii.
+
+$$
+\mathbf{A} =
+\left[ \begin{matrix}
+\frac{1}{\sqrt{2}}  & \frac{1}{\sqrt{2}} \\
+\frac{1}{\sqrt{2}} & -\frac{1}{\sqrt{2}} 
+\end{matrix} \right]
+\left[ \begin{matrix}
+1 + \rho  & 0 \\
+0 & 1 - \rho 
+\end{matrix} \right]
+\left[ \begin{matrix}
+\frac{1}{\sqrt{2}}  & \frac{1}{\sqrt{2}} \\
+\frac{1}{\sqrt{2}} & -\frac{1}{\sqrt{2}} 
+\end{matrix} \right]^T
+$$
+
+#### iv.
+
+$$
+\begin{aligned}
+\mathbf{A}^{-1} &=
+(V \Lambda V^T)^{-1} \\
+&= (V^T)^{-1} (V \Lambda)^{-1} \\
+&= V \Lambda^{-1} V^{-1} \\
+&(\because V^T = V^{-1}) \\
+&= V \Lambda^{-1} V^T
+\end{aligned}
+$$
+
+#### v.
+
+If we let $\mathbf{X} = \Lambda^{\frac{1}{2}}$ such that 
+$\mathbf{X}\mathbf{X} = \Lambda$:
+
+$$
+\begin{aligned}
+(V \mathbf{X} V^T)(V \mathbf{X} V^T) &=
+V \mathbf{X} V^T V \mathbf{X} V^T \\
+&= V \mathbf{X} (V^T V) \mathbf{X} V^T \\
+&= V \mathbf{X} I \mathbf{X} V^T \\
+&(\because V^T = V^{-1}) \\
+&= V (\mathbf{X}\mathbf{X}) V^T \\
+&= V \Lambda V^T \\
+&= \mathbf{A}
+\end{aligned}
+$$
+
+Therefore,
+
+$$
+\mathbf{R} = \mathbf{A}^{\frac{1}{2}}
+= V \Lambda^{\frac{1}{2}} V^T
+$$
+
+### (b)
+
+### Proof by contradiction)
+
+Let's assume that there is a negative eigenvalue $\lambda^*$ of the covariance
+matrix $\Sigma$. Then, by definition, there would be a corresponding eigenvector
+$\vec{v}^*$ where
+
+$$
+\Sigma \ \vec{v}^* = \lambda^* \ \vec{v}^*
+$$
+
+Here, we also know that the covariance matrix is positive semi-definite.
+
+Therefore since $\vec{v}^*$ is a $p$ vector, by definition of a positive
+semi-definite matrix:
+
+$$
+(\vec{v}^*)^T \Sigma \vec{v}^* \geq 0
+$$
+
+However, also using the relationship between eigenvector and eigenvalue:
+
+$$
+\begin{aligned}
+(\vec{v}^*)^T \Sigma \vec{v}^* &=
+(\vec{v}^*)^T \lambda^* \vec{v}^* \\
+&= \lambda^* (\vec{v}^*)^T \vec{v}^* \\
+&(\because \lambda^* \text{ is scalar})
+\end{aligned}
+$$
+
+Here, $(\vec{v}^*)^T \vec{v}^*$ is the inner-product 
+$\vec{v}^* \cdot \vec{v}^*$. 
+
+Knowing that $\vec{v}^*$ is an eigenvector and therefore cannot be $\vec{0}$,
+$(\vec{v}^*)^T \vec{v}^*$ would be strictly positive.
+
+Moreover,
+
+$$
+\lambda^* (\vec{v}^*)^T \vec{v}^* < 0
+$$
+
+since $(\vec{v}^*)^T \vec{v}^* > 0$ and $\lambda^* < 0$.
+
+Therefore,
+
+$$
+(\vec{v}^*)^T \Sigma \vec{v}^* < 0
+$$
+
+and we have reached a contradiction with the definition of positive 
+semi-definiteness of $\Sigma$.
+
+Thus, all eigenvalues of a covariance matrix has to be non-negative.
+
+$$
+Q.E.D.
+$$
+
+### (c)
+
+First, since $(X_1, Y_1)$ and $(X_2, Y_2)$ are continuous and independent:
+
+$$
+\mathbf{P}[X_1 = X_2] = 0
+$$
+
+$$
+\mathbf{P}[Y_1 = Y_2] = 0
+$$
+
+and therefore,
+
+$$
+\mathbf{P}[(X_1 - X_2)(Y_1 - Y_2) = 0] = 0
+$$
+
+Knowing from common sense that:
+
+$$
+\mathbf{P}[(X_1 - X_2)(Y_1 - Y_2) > 0] +
+\mathbf{P}[(X_1 - X_2)(Y_1 - Y_2) = 0] + 
+\mathbf{P}[(X_1 - X_2)(Y_1 - Y_2) < 0] = 1
+$$
+
+we may also say that
+
+$$
+\mathbf{P}[(X_1 - X_2)(Y_1 - Y_2) < 0] = 
+1 - \mathbf{P}[(X_1 - X_2)(Y_1 - Y_2) > 0]
+$$
+
+since $\mathbf{P}[(X_1 - X_2)(Y_1 - Y_2) = 0] = 0$.
+
+Therefore,
+
+$$
+\begin{aligned}
+\tau &= \mathbf{P}[(X_1 - X_2)(Y_1 - Y_2) > 0] -
+\mathbf{P}[(X_1 - X_2)(Y_1 - Y_2) < 0] \\
+&= \mathbf{P}[(X_1 - X_2)(Y_1 - Y_2) > 0] - 
+\left(
+1 - \mathbf{P}[(X_1 - X_2)(Y_1 - Y_2) > 0]
+\right) \\
+&= 2 \mathbf{P}[(X_1 - X_2)(Y_1 - Y_2) > 0] - 1
+\end{aligned}
+$$
+
+Now let's look further into $\mathbf{P}[(X_1 - X_2)(Y_1 - Y_2) > 0]$.
+
+$$
+\begin{aligned}
+\mathbf{P}[(X_1 - X_2)(Y_1 - Y_2) > 0] =&
+\mathbf{P}[(X_1 - X_2) > 0, (Y_1 - Y_2) > 0] +
+\mathbf{P}[(X_1 - X_2) < 0, (Y_1 - Y_2) < 0] \\
+=& \mathbf{P}[X_1 > X_2, Y_1 > Y_2] +
+\mathbf{P}[X_1 < X_2, Y_1 < Y_2]
+\end{aligned}
+$$
+
+Here, we also know that $(X_1, Y_1)$ and $(X_2, Y_2)$ follow the same 
+distribution. Therefore, without loss of generality:
+
+$$
+\mathbf{P}[X_1 > X_2, Y_1 > Y_2] = \mathbf{P}[X_1 < X_2, Y_1 < Y_2]
+$$
+
+Moreover,
+
+$$
+\mathbf{P}[(X_1 - X_2)(Y_1 - Y_2) > 0] = 2 \mathbf{P}[X_1 < X_2, Y_1 < Y_2]
+$$
+
+and
+
+$$
+\tau = 4 \mathbf{P}[X_1 < X_2, Y_1 < Y_2] - 1
+$$
+
+Now to express $\mathbf{P}[X_1 < X_2, Y_1 < Y_2]$ in integral form,
+if we let $f_{XY}(x, y)$ be the joint pdf of $(X_i, Y_i)$, and $F(x, y)$ as
+given in the question,
+
+$$
+\begin{aligned}
+\mathbf{P}[X_1 < X_2, Y_1 < Y_2 \mid X_2 = x_2, Y_2 = y_2] &=
+\int_{-\infty}^{x_2}
+\int_{-\infty}^{y_2}
+f_{XY}(x, y)dydx \\
+&= F(x_2, y_2)
+\end{aligned}
+$$
+
+Therefore, the joint probability $\mathbf{P}[X_1 < X_2, Y_1 < Y_2]$ becomes
+
+$$
+\mathbf{P}[X_1 < X_2, Y_1 < Y_2] = \iint_{\mathbf{R}^2}
+F(x, y) dF(x, y)
+$$
+
+Moreover,
+
+$$
+\tau = 4 \mathbf{P}[X_1 < X_2, Y_1 < Y_2] - 1
+= 4 \iint_{\mathbf{R}^2} F(x, y) dF(x, y) - 1
+$$
+
+$$
+Q.E.D.
+$$
+
+### (d)
+
+#### i.
+
+- $k \times r$
+
+#### ii.
+
+$$
+c_{i, j} = \sum_{m = 1}^p \sum_{n = 1}^p a_{i, n} x_{n, m} b_{m, j}
+$$
+
+#### iii.
+
+If we first look at $\mathbf{E}(c_{i, j})$, since $A$ and $B$ are scalar 
+matrices:
+
+$$
+\begin{aligned}
+\mathbf{E}(c_{i, j}) &= \mathbf{E}\left[
+\sum_{m = 1}^p \sum_{n = 1}^p a_{i, n} x_{n, m} b_{m, j}
+\right] \\
+&= \sum_{m = 1}^p \sum_{n = 1}^p
+\mathbf{E} \left[ 
+a_{i, n} x_{n, m} b_{m, j}
+\right] \\
+&(\because \text{Linearity of Expectation}) \\
+&= \sum_{m = 1}^p \sum_{n = 1}^p
+a_{i, n} \mathbf{E}(x_{n, m}) b_{m, j} \\
+&(\because A \text{ and } B \text{ are scalar matrices})
+\end{aligned}
+$$
+
+Here, $\mathbf{E}(x_{n, m})$ is the $(n, m)$th entry of 
+$\mathbf{E}(\mathbf{X})$ and $\mathbf{E}(c_{i, j})$ is the is the $(i, j)$th 
+entry of $\mathbf{E}(\mathbf{C})$.
+
+Therefore, we may conclude that the three matrices would have the relationship:
+
+$$
+\mathbf{E}(\mathbf{C}) = A \mathbf{E}(\mathbf{X}) B
+$$
+
+$$
+Q.E.D.
+$$
+
+\newpage
+
+## 5.
+
+```{r q5}
+sigma=matrix(c(2,-1,1,-1,4,0,1,0,3),3,3)
+eigen(sigma)
+```
+
+### (a)
+
+$\lambda_1 \approx 4.53$, $\lambda_2 \approx 3.35$, $\lambda_3 \approx 1.12$
+
+### (b)
+
+```{r q5_b, include = FALSE}
+sigma=matrix(c(2,-1,1,-1,4,0,1,0,3),3,3)
+vectors = eigen(sigma)$vectors
+```
+
+$$
+Y_1 = \mathbf{a}_1' X 
+= `r vectors[1,1]` X_1 +
+`r vectors[2,1]` X_2 +
+`r vectors[3,1]` X_3
+$$
+
+$$
+Y_2 = \mathbf{a}_2' X 
+= `r vectors[1,2]` X_1 +
+`r vectors[2,2]` X_2 +
+`r vectors[3,2]` X_3
+$$
+
+$$
+Y_3 = \mathbf{a}_3' X 
+= `r vectors[1,3]` X_1 +
+`r vectors[2,3]` X_2 +
+`r vectors[3,3]` X_3
+$$
+
+### (c)
+
+```{r q5_c, include = FALSE}
+var_y = 0
+for(x in 1:3){
+  var_y = var_y + vectors[x,1]^2 * sigma[x,x]
+  if(x < 3){
+   for(y in (x+1):3){
+     var_y = var_y + 2 * vectors[x,1] * vectors[y,1] * sigma[x, y]
+   } 
+  }
+}
+```
+
+$$
+\begin{aligned}
+Var(Y_1) &= (`r vectors[1,1]`)^2 \cdot Var(X_1) +
+(`r vectors[2,1]`)^2 \cdot Var(X_2) +
+(`r vectors[3,1]`)^2 \cdot Var(X_3) \\
+&+ 2 \cdot (`r vectors[1,1]`) \cdot (`r vectors[2,1]`) \cdot Cov(X_1, X_2)
++ 2 \cdot (`r vectors[1,1]`) \cdot (`r vectors[3,1]`) \cdot Cov(X_1, X_3) \\ 
+&+ 2 \cdot (`r vectors[2,1]`) \cdot (`r vectors[3,1]`) \cdot Cov(X_2, X_3) \\
+&= `r var_y`
+\end{aligned}
+$$
+
+$Var(Y_1)$ has the same value as $\lambda_1$.
+
+\newpage
+
+## 6.
+
+### (a)
+
+$$
+\begin{aligned}
+&\int_{-\infty}^{\infty}
+\int_{-\infty}^{\infty}
+\frac{c}{(1 + x + y)^3} dx dy = 1 \\
+\Leftrightarrow
+& \int_{0}^{\infty}
+\int_{0}^{\infty}
+\frac{c}{(1 + x + y)^3} dx dy = 1 \\
+\Leftrightarrow
+& \int_{0}^{\infty} \left[
+-\frac{c}{2(1 + x + y)^2}
+\right]_{0}^{\infty} dy = 1 \\
+\Leftrightarrow
+& \int_{0}^{\infty}
+\frac{c}{2(1 + y)^2} dy = 1 \\
+\Leftrightarrow
+& \left[
+-\frac{c}{2(1 + y)}
+\right]_{0}^{\infty} = 1 \\
+\Leftrightarrow
+& \frac{c}{2} =1 \\
+& \therefore c = 2
+\end{aligned}
+$$
+
+### (b)
+
+For $x > 0$:
+
+$$
+\begin{aligned}
+\mathbf{P}(X \leq x) &= 
+\int_{0}^{x}
+\int_{0}^{\infty}
+\frac{2}{(1 + x + y)^3} dy dx \\
+&= \int_{0}^{x} \left[
+-\frac{1}{(1 + x + y)^2}
+\right]_{0}^{\infty} dx \\
+&= \int_{0}^{x} 
+\frac{1}{(1 + x)^2} dx
+\end{aligned}
+$$
+
+Therefore, the marginal density of $X$ can be written as:
+
+$$
+f_X(x) = \begin{cases}
+\frac{1}{(1 + x)^2} & x > 0 \\
+0 & \text{otherwise}
+\end{cases}
+$$
+
+### (c)
+
+For $x, y > 0$:
+
+$$
+\begin{aligned}
+f_{Y \mid X} (y \mid x) &= \frac{f_{XY}(x, y)}{f_X(x)} \\
+&= \frac{\frac{2}{(1 + x + y)^3}}{\frac{1}{(1 + x)^2}} \\
+&= \frac{2(1 + x)^2}{(1 + x + y)^3}
+\end{aligned}
+$$
+
+Therefore, the conditional density of $Y$ for $x > 0$ can be written as:
+
+$$
+f_{Y \mid X} (y \mid x) = \begin{cases}
+\frac{2(1 + x)^2}{(1 + x + y)^3} & y > 0 \\
+0 & \text{otherwise}
+\end{cases}
+$$
+
+### (d)
+
+#### i.
+
+Similar to (b), for $y > 0$:
+
+$$
+\begin{aligned}
+\mathbf{P}(Y \leq y) &= 
+\int_{0}^{y}
+\int_{0}^{\infty}
+\frac{2}{(1 + x + y)^3} dx dy \\
+&= \int_{0}^{y} \left[
+-\frac{1}{(1 + x + y)^2}
+\right]_{0}^{\infty} dy \\
+&= \int_{0}^{y} 
+\frac{1}{(1 + y)^2} dy
+\end{aligned}
+$$
+
+Therefore, the marginal density of $Y$ can be written as:
+
+$$
+f_Y(y) = \begin{cases}
+\frac{1}{(1 + y)^2} & y > 0 \\
+0 & \text{otherwise}
+\end{cases}
+$$
+
+From this, we can derive the expectation as
+
+$$
+\begin{aligned}
+\mathbf{E}(Y) &= \int_Y y f_Y(y) dy \\
+&= \int_{0}^{\infty} \frac{y}{(1 + y)^2} dy \\
+&= \int_{0}^{\infty} \left(
+\frac{1}{1 + y} - \frac{1}{(1 + y)^2}\right) dy \\
+&= \int_{0}^{\infty} \frac{1}{1 + y} dy
+- \int_{0}^{\infty} \frac{1}{(1 + y)^2} dy \\
+&= \left[
+\log(1 + y)
+\right]_{0}^{\infty}
+-\left[
+-\frac{1}{1 + y}
+\right]_{0}^{\infty} \\
+&= \lim_{y \rightarrow \infty}\log(1 + y) - 1 \\
+& \rightarrow \infty
+\end{aligned}
+$$
+
+The expected value of $Y$ is unbounded as goes to infinity.
+
+#### ii.
+
+$$
+\begin{aligned}
+g(x) &= \mathbf{E}(Y \mid X = x) \\
+&= \int_Y y f_{Y \mid X}(y \mid x) dy \\
+&= \int_{0}^{\infty}
+\frac{2y(1 + x)^2}{(1 + x + y)^3} dy \\
+&= 2(1 + x)^2 \int_{0}^{\infty}
+\frac{y}{(1 + x + y)^3} dy
+\end{aligned}
+$$
+
+Here, let
+
+$$
+h(y) = -\frac{y}{2(1 + x + y)^2}
+$$
+
+then,
+
+$$
+h'(y) = \frac{y}{(1 + x + y)^3} - \frac{1}{2(1 + x + y)^2}
+$$
+
+which would be equivalent to saying:
+
+$$
+\frac{y}{(1 + x + y)^3} =
+h'(y) + \frac{1}{2(1 + x + y)^2}
+$$
+
+and in differential equation form:
+
+$$
+\frac{y}{(1 + x + y)^3}dy =
+h(y) + \frac{1}{2(1 + x + y)^2}dy
+$$
+
+Therefore, in other words,
+
+$$
+\int_Y
+\frac{y}{(1 + x + y)^3} dy =
+\left[h(y)\right]_Y +
+\int_Y
+\frac{1}{2(1 + x + y)^2}dy
+$$
+
+Moreover, specifically to our case,
+
+$$
+\begin{aligned}
+&\int_{0}^{\infty}
+\frac{y}{(1 + x + y)^3} dy \\
+=& \left[
+-\frac{y}{2(1 + x + y)^2}
+\right]_{0}^{\infty}
++ \int_{0}^{\infty}
+\frac{1}{2(1 + x + y)^2}dy \\
+=& \int_{0}^{\infty}
+\frac{1}{2(1 + x + y)^2}dy \\
+&\left(\because 
+\lim_{y \rightarrow \infty} -\frac{y}{2(1 + x + y)^2} = 0\right) \\
+=& \left[
+-\frac{1}{2(1 + x + y)}
+\right]_{0}^{\infty} \\
+=& \frac{1}{2(1 + x)}
+\end{aligned}
+$$
+
+
+We can use the above finding above to derive the conditional expectation as 
+below:
+
+$$
+\begin{aligned}
+g(x) &= 2(1 + x)^2 \int_{0}^{\infty}
+\frac{y}{(1 + x + y)^3} dy \\
+&= 2(1 + x)^2 \frac{1}{2(1 + x)} \\
+&= 1 + x
+\end{aligned}
+$$

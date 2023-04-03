@@ -1,0 +1,292 @@
+---
+title: "Assignment 0"
+subtitle: "Statistics 32950 (Spring 2023)"
+author: "Ki Hyun"
+date: "Due: 23:00 (CT) 2023-03-24"
+output: pdf_document
+---
+
+## 1.
+
+$$
+r = \frac{\sum_{i = 1}^n \left(x_i - \bar{x}\right) 
+\left(y_i - \bar{y}\right)}
+{\sqrt{\sum_{i = 1}^n \left(x_i - \bar{x}\right)^2
+\sum_{i = 1}^n \left(y_i - \bar{y}\right)^2}}
+$$
+
+Here,
+
+$$
+\bar{x} = \frac{1}{n} \sum_{i = 1}^n x_i
+$$
+
+Moreover,
+
+$$
+\bar{y} = \frac{1}{n} \sum_{i = 1}^n y_i
+$$
+
+\newpage
+
+## 2.
+
+```{r q2}
+x = runif(30); y = x^3 + rnorm(30)/3
+plot(y, x); abline(lm(y ~ x))
+title("Cubic relationship in Linear")
+```
+
+\newpage
+
+## 3.
+
+$$
+A = \left[\begin{matrix} a_1 & a_2 & a_3
+\end{matrix} \right] =
+\left[\begin{matrix} 3 & -4 & -1 \\
+-6 & 0 & 5 \\
+4 & 5 &7
+\end{matrix} \right]
+$$
+
+$$
+B = \left[\begin{matrix} b_1 & b_2 & b_3
+\end{matrix} \right] =
+\left[\begin{matrix} 1 & 0 & 0 \\
+0 & 3 & 0 \\
+0 & 0 & -2
+\end{matrix} \right]
+$$
+
+$$
+E = \left[\begin{matrix} e_1 & e_2 & e_3
+\end{matrix} \right] =
+\left[\begin{matrix} 1 & 0 & 0 \\
+0 & 0 & 1 \\
+0 & 1 & 0
+\end{matrix} \right]
+$$
+
+### (a)
+
+#### i)
+
+When $A$ is multiplied by $B$ from the left (i.e., $B A$), the following row
+operations on $A$ occurs:
+
+- The first elements of each column remain the same.
+- The second elements of each column gets multiplied by $3$.
+- The third elements of each column gets multiplied by $-2$.
+
+#### ii)
+
+When $A$ is multiplied by $B$ from the right (i.e., $A B$), the following column
+operations on $A$ occurs:
+
+- The first column remains the same. ($a_1$)
+- The second column gets multiplied by $3$. ($3a_2$)
+- The third column gets multiplied by $-2$. ($-2a_3$)
+
+#### iii)
+
+When $A$ is multiplied by $E$ from the left (i.e., $E A$), the following row
+operations on $A$ occurs:
+
+- The first row remains the same.
+- The second row becomes the third row.
+- The third row becomes the second row.
+
+#### iv)
+
+When $A$ is multiplied by $E$ from the right (i.e., $A E$), the following column
+operations on $A$ occurs:
+
+- The first column remains the same.
+- The second column becomes the third column. ($a_3$)
+- The third column becomes the second column. ($a_2$)
+
+### (b)
+
+$$
+v = \left[\begin{matrix} 7 \\ 3 \\ 24
+\end{matrix} \right]
+$$
+
+#### i)
+
+```{r 3_b_1}
+A = matrix(c(3, -4, -1, -6, 0, 5, 4, 5, 7), nrow = 3, byrow = T)
+v = matrix(c(7, 3, 24), nrow = 3, byrow = T)
+solve(A) %*% v
+```
+
+$$
+v = 2 a_1 - a_2 + 3 a_3
+$$
+
+
+#### ii)
+
+$$
+v = 7 b_1 + b_2 - 12 b_3
+$$
+
+#### iii)
+
+$$
+v = 7 e_1 + 24 e_2 + 3 e_3
+$$
+
+\newpage
+
+## 4.
+
+### (a)
+
+$$
+\sum_{i = 1}^n k^3 = \left(\sum_{i = 1}^n k \right)^2
+$$
+
+### Proof by induction)
+
+#### i)
+
+Let's first check that the statement is true for $n = 1$.
+
+$$
+1^3 = (1)^2
+$$
+
+#### ii)
+
+Let's assume that the statement is true for $m$, 
+(i.e., $\sum_{i = 1}^m k^3 = \left(\sum_{i = 1}^m k \right)^2$).
+
+Then for $m + 1$:
+
+$$
+\begin{aligned}
+\sum_{i = 1}^{m + 1} k^3 &=
+\sum_{i = 1}^{m} k^3 + (m + 1)^3 \\
+&= \left(\sum_{i = 1}^m k \right)^2 + m^3 + 3m^2 + 3m + 1 \\
+&= \left( \frac{m(m + 1)}{2} \right)^2 + m^3 + 3m^2 + 3m + 1 \\
+&= \frac{m^4}{4} + \frac{m^3}{2} + \frac{m^2}{4} + m^3 + 3m^2 + 3m + 1 \\
+&= \frac{1}{4} \left( m^4 + 6m^3 + 13m^2 + 12m + 4 \right) \\
+&= \frac{1}{4} \left( m^2 + 3m + 2 \right)^2 \\
+&= \left( \frac{(m + 1)(m + 2)}{2} \right)^2 \\
+&= \left(\sum_{i = 1}^{m + 1} k \right)^2
+\end{aligned}
+$$
+
+$$
+\therefore
+\sum_{i = 1}^n k^3 = \left(\sum_{i = 1}^n k \right)^2
+$$
+
+$$
+Q.E.D.
+$$
+
+### (b)
+
+Let,
+
+$$
+A = \left[\begin{matrix} 1 & 0 & 0 & 0 \\
+1 & 0 & 0 & 0 \\
+1 & 0 & 0 & 0 \\
+1 & 0 & 0 & 0
+\end{matrix} \right]
+$$
+
+and
+
+$$
+B = \left[\begin{matrix} 1 & 1 & 1 & 1 \\
+1 & 1 & 1 & 1 \\
+1 & 1 & 1 & 1 \\
+1 & 1 & 1 & 1
+\end{matrix} \right]
+$$
+
+Then,
+
+$$
+AB = \left[\begin{matrix} 1 & 1 & 1 & 1 \\
+1 & 1 & 1 & 1 \\
+1 & 1 & 1 & 1 \\
+1 & 1 & 1 & 1
+\end{matrix} \right]
+$$
+
+However,
+
+$$
+BA = \left[\begin{matrix} 4 & 0 & 0 & 0 \\
+4 & 0 & 0 & 0 \\
+4 & 0 & 0 & 0 \\
+4 & 0 & 0 & 0
+\end{matrix} \right]
+$$
+
+$$
+\therefore
+AB \neq BA
+$$
+
+$$
+Q.E.D.
+$$
+
+\newpage
+
+## 5.
+
+$$
+U \sim Uniform[-1, 1]
+$$
+
+$$
+X = U^2
+$$
+
+### (a)
+
+For $0 < x \leq 1$
+
+$$
+\mathbf{P}\{X \leq x\} =
+\mathbf{P}\{-\sqrt{x} \leq U \leq \sqrt{x}\} =
+\frac{2\sqrt{x}}{2} = \sqrt{x}
+$$
+
+Here,
+
+$$
+\frac{\delta}{\delta x} \mathbf{P}\{X \leq x\} =
+\frac{\delta}{\delta x} \sqrt{x} =
+\frac{1}{2\sqrt{x}}
+$$
+
+Therefore, the p.d.f. of $X$ ($f(x)$) can be described as:
+
+$$
+f(x) = \begin{cases}
+\frac{1}{2\sqrt{x}} & 0 < x \leq 1 \\
+0 & \text{otherwise}
+\end{cases}
+$$
+
+### (b)
+
+$$
+\begin{aligned}
+\mathbf{E}\left(X\right) &=
+\int_0^1 x f(x) dx \\
+&= \int_0^1 \frac{x}{2\sqrt{x}} dx \\
+&= \int_0^1 \frac{\sqrt{x}}{2} dx \\
+&= \left[ \frac{1}{3} x^{\frac{3}{2}}\right]_0^1 \\
+&= \frac{1}{3}
+\end{aligned}
+$$
