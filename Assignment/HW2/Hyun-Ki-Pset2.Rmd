@@ -1,0 +1,12 @@
+---
+title: "Assignment 2"
+subtitle: "Statistics 32950"
+author: "Ki Hyun"
+date: "Due: 09:00 (CT) 2023-04-04"
+output: pdf_document
+---
+
+```{r packages}
+
+```
+
