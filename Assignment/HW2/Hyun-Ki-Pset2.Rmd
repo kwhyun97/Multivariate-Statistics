@@ -7,6 +7,19 @@ output: pdf_document
 ---
 
 ```{r packages}
-
+library(dplyr)
+library(MASS)
 ```
+
+```{r data}
+# lady-run data
+ladyrun = read.table("ladyrun23.dat")
+colnames(ladyrun)=c("Country","100m","200m","400m",
+                    "800m","1500m","3000m","Marathon")
+# Harman5 data
+mydata = read.table("Harman5.txt")
+```
+
+## Q1.
+
 
