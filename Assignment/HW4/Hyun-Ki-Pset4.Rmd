@@ -1,0 +1,14 @@
+---
+title: "Assignment 4"
+subtitle: "STAT 32950"
+author: "Ki Hyun"
+date: "Due: 09:00 (CT) 2023-04-18"
+output: pdf_document
+---
+
+```{r packages, include=FALSE}
+library(dplyr)
+library(ggplot2)
+library(ellipse)
+```
+
