@@ -1,0 +1,8 @@
+---
+title: "STAT 32950 Week 6 Demo"
+subtitle: "Class3pop LDA"
+author: "Ki Hyun"
+output: html_notebook
+---
+
+
