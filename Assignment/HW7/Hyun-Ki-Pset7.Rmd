@@ -1,0 +1,236 @@
+---
+title: "Assignment 7"
+subtitle: "STAT 32950"
+author: "Ki Hyun"
+date: "Due: 09:00 (CT) 2023-05-16"
+output: pdf_document
+---
+
+```{r packages, message=FALSE, warning=FALSE}
+library(dplyr)
+library(ggplot2)
+library(MASS)
+library(glmnet)
+```
+
+# Problem 1.
+
+```{r q1 data}
+x1 = rnorm(30)
+x2 = x1 + rnorm(30, sd = 0.01)
+Y = rnorm(30, mean = 3 + x1 + x2)
+```
+
+## (a)
+
+```{r q1_a}
+OLS_model <- lm(Y ~ x1 + x2)
+betas <- OLS_model$coefficients
+summary(OLS_model)
+```
+
+From the Least Square method, the fitted model with estimated parameters is as
+below:
+
+$$
+\begin{aligned}
+\mathbf{E}[\hat{Y}] &= \hat{\beta_0} + \hat{\beta_1} x_1 + \hat{\beta_2} x_2 \\
+& \approx `r round(betas[1], 2)` + (`r round(betas[2], 2)`) x_1 + 
+(`r round(betas[3], 2)`) x_2 
+\end{aligned}
+$$
+
+## (b)
+
+From the given code, the true model with the true $\beta_i$'s are:
+
+$$
+Y = 3 + x_1 + x_2 + \epsilon
+$$
+
+where $\beta_0 = 3$, $\beta_1 = 1$, and $\beta_2 = 1$.
+
+Compared to this true value, the LS model in (a) is **very bad**.
+
+From the code, it appears that $x_1$ and $x_2$ are highly correlated. If we
+actually plot the two values:
+
+```{r q1_b_plot}
+ggplot(data = tibble(x1 = x1, x2 = x2)) +
+  geom_point(mapping = aes(x = x1, y = x2)) +
+  labs(title = "Correlation between two regressors") +
+  theme_bw(base_size = 13)
+```
+
+We can clearly see that the two independent variables are highly correlated.
+This would result in coefficient estimates that are far away from the true 
+values.
+
+## (c)
+
+```{r q1_c}
+RSS_true = sum((Y - 3 - x1 - x2)^2)
+print(paste0("The RSS of the true model: ", RSS_true))
+RSS_LS = sum(OLS_model$residuals^2)
+print(paste0("The RSS of the LS model: ", RSS_LS))
+```
+
+The two RSS are indeed comparable. In fact, the RSS of the "bad" LS model is
+lower than the true model. 
+
+This is the case since the LS parameter values are chosen to minimize the RSS
+value. Therefore, the optimized LS coefficients will result in not only 
+comparable, but also the lowest in-sample RSS value.
+
+## (d)
+
+```{r q1_d}
+Ridge_model <- lm.ridge(Y ~ x1 + x2, lambda = 1, model = TRUE)
+betas_ridge <- coef(Ridge_model)
+summary(Ridge_model)
+```
+
+The fitted Ridge model is:
+
+$$
+\begin{aligned}
+\mathbf{E}[\hat{Y}] &= \hat{\beta_0} + \hat{\beta_1} x_1 + \hat{\beta_2} x_2 \\
+& \approx `r round(betas_ridge[1], 2)` + 
+(`r round(betas_ridge[2], 2)`) x_1 + 
+(`r round(betas_ridge[3], 2)`) x_2 
+\end{aligned}
+$$
+
+The parameter estimates are much closer to the true model.
+
+## (e)
+
+The criterion of the LS method is the RSS. In mathematical expression:
+
+$$
+\min_{\boldsymbol{\beta}}
+\sum_{j = 1}^n
+\left[
+y_j - (\hat{\beta_0} + \hat{\beta_1} x_{1, j} + \hat{\beta_2} x_{2, j})
+\right]^2
+$$
+
+The criterion of the Ridge method is the RSS and a $l_2$ penalty
+term on the coefficients. In mathematical expression:
+
+$$
+\min_{\boldsymbol{\beta}}
+\left(
+\sum_{j = 1}^n
+\left[
+y_j - (\hat{\beta_0} + \hat{\beta_1} x_{1, j} + \hat{\beta_2} x_{2, j})
+\right]^2
++\sum_{k = 1}^3 |\beta_k|^2
+\right)
+$$
+
+To recap, the result in (a) was:
+
+```{r q1_a_recap}
+OLS_model$coefficients
+```
+
+The result in (d) was:
+
+```{r q1_d_recap}
+Ridge_model
+```
+
+As shown by comparing the absolute values of the coefficients for the results
+of (a) and (d), the Ridge regression reduces the magnitude of the coefficients.
+
+\newpage
+
+# Problem 2.
+
+```{r q2_data}
+data(Boston)
+colnames(Boston)
+```
+
+## (a)
+
+```{r q2_a_data}
+Tdata = Boston[1:300,]
+Cdata = Boston[301:506,]
+X=as.matrix(Tdata[,1:13])
+Y=Tdata[,14]
+```
+
+```{r q2_a_modeling}
+trainfit = glmnet(X, Y)
+nx = as.matrix(Cdata[, 1:13])
+ny = Cdata[, 14]
+calibrate_mse = colMeans((predict(trainfit, newx = nx) - ny)^2)
+lambda_star <- trainfit$lambda[which.min(calibrate_mse)]
+```
+
+```{r q2_a_results}
+betas_LASSO <- coef(trainfit, s = lambda_star)
+betas_LASSO
+```
+
+\newpage
+
+The optimal model after calibration is:
+
+$$
+\begin{aligned}
+\mathbf{E}[Y_{MEDV}] \approx &
+`r round(betas_LASSO[1,], 2)` + \\
+& (`r round(betas_LASSO[5,], 2)`) X_{`r rownames(betas_LASSO)[5]`} + 
+(`r round(betas_LASSO[7,], 2)`) X_{`r rownames(betas_LASSO)[7]`} + 
+(`r round(betas_LASSO[8,], 2)`) X_{`r rownames(betas_LASSO)[8]`} + 
+(`r round(betas_LASSO[9,], 2)`) X_{`r rownames(betas_LASSO)[9]`} + \\
+& (`r round(betas_LASSO[11,], 2)`) X_{`r rownames(betas_LASSO)[11]`} + 
+(`r round(betas_LASSO[12,], 2)`) X_{`r rownames(betas_LASSO)[12]`} + 
+(`r round(betas_LASSO[13,], 2)`) X_{`r rownames(betas_LASSO)[13]`} + 
+(`r round(betas_LASSO[14,], 2)`) X_{`r rownames(betas_LASSO)[14]`}
+\end{aligned}
+$$
+
+The independent variables `r rownames(betas_LASSO)[which(betas_LASSO[,1] == 0)]`
+were excluded from the model as their coefficients were optimized at $0$ after
+the $l_1$ penalty.
+
+## (b)
+
+```{r q2_b_OLS}
+OLS_model2 <- lm(medv ~ ., data = Boston)
+betas2 <- OLS_model2$coefficients
+summary(OLS_model2)
+```
+
+\newpage
+
+The OLS model result is:
+
+$$
+\begin{aligned}
+\mathbf{E}[Y_{MEDV}] \approx &
+`r round(betas2[1], 2)` + \\
+& (`r round(betas2[2], 2)`) X_{`r names(betas2)[2]`} +
+(`r round(betas2[3], 3)`) X_{`r names(betas2)[3]`} +
+(`r round(betas2[4], 3)`) X_{`r names(betas2)[4]`} +
+(`r round(betas2[5], 2)`) X_{`r names(betas2)[5]`} + \\
+& (`r round(betas2[6], 2)`) X_{`r names(betas2)[6]`} +
+(`r round(betas2[7], 2)`) X_{`r names(betas2)[7]`} +
+(`r round(betas2[8], 5)`) X_{`r names(betas2)[8]`} +
+(`r round(betas2[9], 2)`) X_{`r names(betas2)[9]`} + \\
+& (`r round(betas2[10], 2)`) X_{`r names(betas2)[10]`} +
+(`r round(betas2[11], 3)`) X_{`r names(betas2)[11]`} +
+(`r round(betas2[12], 2)`) X_{`r names(betas2)[12]`} +
+(`r round(betas2[13], 3)`) X_{`r names(betas2)[13]`} + \\ 
+& (`r round(betas2[14], 2)`) X_{`r names(betas2)[14]`}
+\end{aligned}
+$$
+
+
+
+
+
