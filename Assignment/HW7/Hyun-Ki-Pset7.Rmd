@@ -11,6 +11,8 @@ library(dplyr)
 library(ggplot2)
 library(MASS)
 library(glmnet)
+library(elasticnet)
+library(fastICA)
 ```
 
 # Problem 1.
@@ -229,6 +231,457 @@ $$
 & (`r round(betas2[14], 2)`) X_{`r names(betas2)[14]`}
 \end{aligned}
 $$
+
+As expected, there is no dimension reduction for the OLS model. Moreover, the
+intercept and the coefficients for 
+`r rownames(betas_LASSO)[which(betas_LASSO[,1] != 0)][-1]` are very different
+between the two models.
+
+We expect the in-sample MSE to be lower for the OLS model but the out-of-sample
+MSE to be much lower for the LASSO model.
+
+\newpage
+
+# Problem 3.
+
+```{r q3_data}
+data = read.csv("hearlossData.csv") 
+colnames(data)=c("Left5c","Left1k","Left2k","Left4k",
+                 "Right5c","Right1k","Right2k","Right4k")
+```
+
+## (a)
+
+```{r q3_a_i}
+# variance of each column
+diag(cov(data))
+```
+
+```{r q3_a_unscaled_i}
+summary(princomp(data))
+```
+
+For the un-scaled data, there are a total of 8 principal components.
+The decomposition of each `r ncol(data)` columns in terms of the principal 
+components are:
+
+```{r q3_a_unscaled_ii}
+princomp(data)$loadings
+```
+
+In terms of the first 2 principal components:
+
+```{r q3_a_unscaled_iii}
+princomp(data)$loadings[, 1:2]
+```
+
+We may repeat the same after scaling the data.
+
+```{r q3_a_scaled_i}
+summary(princomp(data), cor = T)
+```
+
+For the scaled data, there are a total of 8 principal components.
+The decomposition of each `r ncol(data)` scaled columns in terms of the 
+principal components are:
+
+```{r q3_a_scaled_ii}
+princomp(data, cor = T)$loadings
+```
+
+In terms of the first 2 principal components:
+
+```{r q3_a_scaled_iii}
+princomp(data, cor = T)$loadings[, 1:2]
+```
+
+## (b)
+
+```{r q3_b_basic}
+
+```
+
+
+\newpage
+
+# Problem 4.
+
+```{r q4_data}
+X = read.table("tableICA.txt")
+```
+
+## (a)
+
+```{r q4_a}
+Mpca = princomp(X)
+summary(Mpca)
+```
+
+The plotting of the observations by the first two principal components
+
+```{r q4_a_plot}
+ggplot(data = as_tibble(Mpca$scores)) + 
+  geom_point(mapping = aes(x = Comp.1, y = Comp.2)) +
+  geom_abline(slope = Mpca$loading[1,1]/Mpca$loading[2,1],
+              intercept = 0, col = "red") + 
+  geom_abline(slope = Mpca$loading[1,2]/Mpca$loading[2,2],
+              intercept = 0, col = "red") + 
+  labs(title = "PCA on data",
+       x = "PC 1", y = "PC 2") +
+  theme_bw(base_size = 12)
+```
+
+The scree plot is shown below:
+
+```{r q4_a_scree}
+ggplot(tibble(x = c(1:3), y = Mpca$sdev^2 / sum(Mpca$sdev^2))) + 
+  geom_line(mapping = aes(x, y)) +
+  labs(x = "Principal Components",
+       y = "Variance Explained",
+       title = "Scree Plot")+
+  ylim(0, 1) +
+  theme_bw(base_size = 12)
+```
+
+The scree plot shows that the first two principal components explain most of
+the variance within the data. Nevertheless, the plot of the observations with
+the first two PCs as axis shows that the combination of the two principal 
+components would better explain the data as the plot resembles a linear pattern
+in layers.
+
+## (b)
+
+```{r q4_b}
+Mica = fastICA(X, 3)
+summary(Mica$S)
+```
+
+If we plot the Independent Components on the data:
+
+```{r q4_b_plot}
+ggplot(data = tibble(IC1 = Mica$S[, 1], IC2 = Mica$S[, 2])) + 
+  geom_point(mapping = aes(x = IC1, y = IC2)) +
+  geom_abline(slope = Mica$W[1,1]/Mica$W[2,1],
+              intercept = 0, col = "red") + 
+  geom_abline(slope = Mica$W[1,2]/Mica$W[2,2],
+              intercept = 0, col = "red") + 
+  labs(title = "ICA on data",
+       x = "IC 1", y = "IC 2") +
+  theme_bw(base_size = 12)
+```
+
+The plots of ICA recovered signals are included below:
+
+```{r}
+par(mfrow = c(3, 1))
+plot(1:nrow(Mica$S),Mica$S[,1],cex=.5,type="l"); title("ICA recover signal 1")
+plot(1:nrow(Mica$S),Mica$S[,2],cex=.5,type="l"); title("ICA recover signal 2")
+plot(1:nrow(Mica$S),Mica$S[,3],cex=.5,type="l"); title("ICA recover signal 3")
+```
+
+The plot of the three independent components recovered are included below:
+
+```{r q4_b_hist}
+par(mfrow = c(1, 3))
+hist(Mica$S[,1],main="", xlim=c(-2,2),ylim=c(0,110))
+hist(Mica$S[,2],main="", xlim=c(-2,2),ylim=c(0,110))
+hist(Mica$S[,3],main="", xlim=c(-2,2),ylim=c(0,110))
+```
+
+## (c)
+
+The IC analysis seems to separate the signals and decompose the data into 
+different dimensions better. The different "layers" present in the PC analysis
+plot is no longer present in the IC analysis. Moreover, comparing (a) and (b)
+may suggest the existence of independent source that is far from a Gaussian
+distribution.
+
+\newpage
+
+# Problem 5.
+
+## (a)
+
+$$
+\begin{aligned}
+H(X) &= - \int_{\mathbf{R}} \phi(x) \log \phi(x) dx \\
+&= - \int_{\mathbf{R}} \frac{1}{\sigma \sqrt{2 \pi }}
+e^{-\frac{1}{2}(\frac{x - \mu}{\sigma})^2}
+\left(
+-\frac{1}{2}(\frac{x - \mu}{\sigma})^2
+-\log(\sigma \sqrt{2 \pi })
+\right) dx \\
+&= \log(\sigma \sqrt{2 \pi })
+\int_{\mathbf{R}} \frac{1}{\sigma \sqrt{2 \pi }}
+e^{-\frac{1}{2}(\frac{x - \mu}{\sigma})^2} dx +
+\int_{\mathbf{R}} \frac{1}{2}(\frac{x - \mu}{\sigma})^2
+\frac{1}{\sigma \sqrt{2 \pi }}
+e^{-\frac{1}{2}(\frac{x - \mu}{\sigma})^2} dx \\
+&= \log(\sigma \sqrt{2 \pi }) +
+\frac{1}{2 \sigma^2} \int_{\mathbf{R}} x^2 
+\frac{1}{\sigma \sqrt{2 \pi }}
+e^{-\frac{1}{2}(\frac{x - \mu}{\sigma})^2} dx -
+\frac{\mu}{\sigma^2} \int_{\mathbf{R}} x
+\frac{1}{\sigma \sqrt{2 \pi }}
+e^{-\frac{1}{2}(\frac{x - \mu}{\sigma})^2} dx +
+\frac{\mu^2}{2\sigma^2} \int_{\mathbf{R}}
+\frac{1}{\sigma \sqrt{2 \pi }}
+e^{-\frac{1}{2}(\frac{x - \mu}{\sigma})^2} dx \\
+&= \log(\sigma \sqrt{2 \pi }) +
+\frac{\sigma^2 + \mu^2}{2 \sigma^2} -
+\frac{\mu^2}{\sigma^2} + \frac{\mu^2}{2\sigma^2} \\
+&= \log(\sigma \sqrt{2 \pi }) + \frac{1}{2} \\
+&= \log(\sigma \sqrt{2 \pi } \times e^{\frac{1}{2}}) \\
+&= \log(\sigma \sqrt{2 \pi e})
+\end{aligned}
+$$
+
+$$
+Q.E.D.
+$$
+
+## (b)
+
+$$
+\begin{aligned}
+H(X) &= - \int_{\mathbf{R}} f(x) \log \phi(x) dx \\
+&= - \int_{\mathbf{R}} f(x)
+\left(
+-\frac{1}{2}(\frac{x}{\sigma})^2
+-\log(\sigma \sqrt{2 \pi })
+\right) dx \\
+&= \log(\sigma \sqrt{2 \pi })
+\int_{\mathbf{R}} f(x) dx +
+\int_{\mathbf{R}} \frac{1}{2}(\frac{x}{\sigma})^2 f(x) dx \\
+&= \log(\sigma \sqrt{2 \pi }) +
+\frac{1}{2 \sigma^2} \int_{\mathbf{R}} x^2 f(x) dx\\
+&= \log(\sigma \sqrt{2 \pi }) +
+\frac{\sigma^2 + 0^2}{2 \sigma^2} \\
+&= \log(\sigma \sqrt{2 \pi }) + \frac{1}{2} \\
+&= \log(\sigma \sqrt{2 \pi } e^{-\frac{1}{2}}) \\
+&= \log(\sigma \sqrt{2 \pi e})
+\end{aligned}
+$$
+
+$$
+Q.E.D.
+$$
+
+## (c)
+
+If we look at the function
+
+$$
+\log \phi(x) =
+-\frac{1}{2}(\frac{x}{\sigma})^2 -\log(\sigma \sqrt{2 \pi })
+$$
+
+it takes a convex form.
+
+Therefore, if we let $h(x) = \log \phi(x)$ then the differential entropy 
+examined in (b) can be expressed as $-\mathbf{E}[h(x)]$.
+
+$$
+- \int_{\mathbf{R}} f(x) \log \phi(x) dx = -\mathbf{E}[h(X)]
+$$
+
+Since $h(x)$ is a convex function, we know from Jensen's Inequality that
+
+$$
+\mathbf{E}[h(X)] \leq h(\mathbf{E}[X])
+$$
+
+Therefore,
+
+$$
+- \int_{\mathbf{R}} f(x) \log \phi(x) dx = -\mathbf{E}[h(X)]
+\geq -h(\mathbf{E}[X])
+$$
+
+It was also defined that $\mathbf{E}[X] = 0$. From this,
+
+$$
+- \int_{\mathbf{R}} f(x) \log \phi(x) dx \geq
+-h(0) = -\log \phi(0) = \log(\sigma \sqrt{2 \pi})
+$$
+
+
+
+## (d)
+
+First since $Y$ is defined by $X_1 + X_2$, $Y$ is also a continuous random 
+variable on the real line. 
+
+Now if we examine the mean of $Y$
+
+$$
+\mathbf{E}[Y] = \mathbf{E}[X_1 + X_2]
+=\mathbf{E}[X_1] + \mathbf{E}[X_2] = 0
+$$
+
+For the variance,
+
+$$
+Var[Y] = Var[X_1 + X_2]
+= Var[X_1] + Var[X_2] + 2Cov[X_1, X_2]
+$$
+
+If we denote the variance of $Y$ as $\sigma_Y^2$ and the correlation between
+$X_1$ and $X_2$ as $\rho_{1, 2}$,
+
+$$
+\sigma_Y^2 = 
+\sigma_1^2 + \sigma_2^2 + 2 \rho_{1, 2} \sigma_1 \sigma_2
+$$
+
+We know from (c) that
+
+$$
+H(Y) \leq \log(\sigma_Y \sqrt{2 \pi e})
+$$
+
+Moreover, we know that the equation only holds when $Y$ follows a normal 
+distribution. This would mean that, first, to maximize the differential entropy,
+both $X_1$ and $X_2$ would need to follow the normal distribution in order for
+$Y$ to follow a normal distribution.
+
+Secondly, looking at the break down of $\sigma_Y$, the 
+$\log(\sigma_Y \sqrt{2 \pi e})$ value itself would be maximized when 
+$\rho{1, 2} = 1$.
+
+Therefore, my choice of $X_1$ and $X_2$ would be:
+
+$$
+X_1 = \frac{\sigma_1}{\sigma_2} X_2 \sim N(0, \sigma_1^2)
+$$
+
+\newpage
+
+# Problem 6.
+
+## (a)
+
+$$
+\mathbf{E}[Y] = \begin{pmatrix}
+\nu_1 \\ \vdots \\ \nu_p
+\end{pmatrix} \in \mathbf{R}^p
+$$
+
+## (b)
+
+Since $Y_i$ are independent, the covariance matrix becomes:
+
+$$
+Cov(Y) = \begin{bmatrix}
+1 & 0 & \cdots & 0 \\
+0 & 1 & \cdots & 0 \\
+\vdots & & \ddots & \vdots \\
+0 & & \cdots & 1
+\end{bmatrix} \in \mathbf{R}^{p \times p}
+$$
+
+## (c)
+
+### i)
+
+$$
+\boldsymbol{\mu} = \mathbf{E}[Y]
+= \sum_{c = 1}^K \pi_c \ \boldsymbol{\mu}_c
+= \begin{pmatrix}
+\sum_{c = 1}^K \pi_c \mu_{c1} \\
+\vdots \\
+\sum_{c = 1}^K \pi_c \mu_{cp}
+\end{pmatrix}
+$$
+
+### ii)
+
+$$
+\mathbf{P}(\mathbf{y} \mid \boldsymbol{\mu}_c)
+= \prod_{i = 1}^p \mu_{ci}^{y_i}
+(1 - \mu_{ci})^{1 - y_i}
+$$
+
+### iii)
+
+$$
+\begin{aligned}
+\mathbf{P}(\mathbf{y} \mid \boldsymbol{\pi},
+\boldsymbol{\mu}_1, \cdots, \boldsymbol{\mu}_K) &=
+\sum_{k = 1}^K \mathbf{P}(\mathbf{y} \mid \boldsymbol{\mu}_c = 
+\boldsymbol{\mu}_k) \times 
+\mathbf{P}(\boldsymbol{\mu}_k \mid \boldsymbol{\pi}) \\
+&= \sum_{c = 1}^K \left(\pi_c \prod_{i = 1}^p \mu_{ci}^{y_i}
+(1 - \mu_{ci})^{1 - y_i} \right)
+\end{aligned}
+$$
+
+### iv)
+
+First and foremost, we should note
+
+$$
+Cov(Y) = \mathbf{E}(Cov(Y \mid C)) + Cov(\mathbf{E}(Y \mid C))
+$$
+
+If we focus on the first part:
+
+$$
+\mathbf{E}(Cov(Y \mid C)) =
+\mathbf{E}(\Sigma_c) =
+\sum_{c = 1}^K \pi_c \Sigma_c
+$$
+
+Now for the second part:
+
+$$
+Cov(\mathbf{E}(Y \mid C)) = 
+Cov(\boldsymbol{\mu}_c)
+$$
+
+Let's look at $\mu_{ci}$ and $\mu_{cj}$.
+
+$$
+Cov(\mu_{ci}, \mu_{cj}) = \sum_{c = 1}^K \mu_{ci} \mu_{cj} \pi_c
+- \left(\sum_{c = 1}^K \mu_{ci} \pi_c \right)
+\left(\sum_{c = 1}^K \mu_{cj} \pi_c \right)
+$$
+
+Therefore, $Cov(\boldsymbol{\mu}_c)$ may be expressed as:
+
+$$
+Cov(\boldsymbol{\mu}_c) =
+\sum_{c = 1}^K \pi_c \boldsymbol{\mu}_c \boldsymbol{\mu}_c^T -
+\left(\sum_{c = 1}^K \pi_c \boldsymbol{\mu}_c \right)
+\left(\sum_{c = 1}^K \pi_c \boldsymbol{\mu}_c \right)^T
+$$
+
+Ultimately,
+
+$$
+Cov(Y) = \sum_{c = 1}^K \pi_c \Sigma_c +
+\sum_{c = 1}^K \pi_c \boldsymbol{\mu}_c \boldsymbol{\mu}_c^T -
+\left(\sum_{c = 1}^K \pi_c \boldsymbol{\mu}_c \right)
+\left(\sum_{c = 1}^K \pi_c \boldsymbol{\mu}_c \right)^T
+$$
+
+## (d)
+
+### i)
+
+Using the expression in (c) iii):
+
+$$
+L(\boldsymbol{\mu}_1, \cdots, \boldsymbol{\mu}_K, 
+\boldsymbol{\pi} \mid \mathbf{Y}) = \mathbf{P}(\mathbf{Y} \mid
+\boldsymbol{\mu}_1, \cdots, \boldsymbol{\mu}_K, \boldsymbol{\pi}) =
+\prod_{i = 1}^n \left(
+\sum_{c = 1}^K \left(\pi_c \prod_{j = 1}^p \mu_{cj}^{y^{(i)}_j}
+(1 - \mu_{cj})^{1 - y^{(i)}_j} \right)
+\right)
+$$
+
+### ii)
 
 
 
