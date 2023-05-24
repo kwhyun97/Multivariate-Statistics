@@ -1,0 +1,193 @@
+---
+title: "kNN Demo"
+subtitle: "STAT 32950 Week 6"
+author: "Ki Hyun"
+output: html_notebook
+---
+
+```{r packages}
+library(plotrix)
+library(class)
+```
+
+# k-NN Algorithm
+
+## Simulated Data
+
+```{r data}
+set.seed(2023)
+# first set
+x1 = rnorm(20) + 1
+y1 = rnorm(20) + 1
+# second set
+x2 = rnorm(20) - 1
+y2 = rnorm(20) - 1
+```
+
+## Illustration: How k-NN classifies a new observation:
+
+```{r two_d_plot}
+plot(x1,y1,xlim=c(-3.5,3.5),ylim=c(-3.5,3.5),
+xlab="",ylab="", col=2,cex=.5)
+points(x2,y2,pch=3,col=4,cex=.5)
+points(0.4,-.3,pch=8,col=3)
+draw.circle(.4,-.3,.2)
+draw.circle(.4,-.3,.52)
+draw.circle(.4,-.3,.95)
+title("k-NN; k = 1, 3, 10")
+```
+
+# Fitting k-NN Model:
+
+## Training Data and Testing Data
+
+```{r train_test_data}
+data(iris)
+myDat = iris
+# splitting to train and test data
+set.seed(2023)
+trainRate = 0.7
+trainNo = sample(dim(myDat)[1], trainRate * dim(myDat)[1])
+```
+
+```{r data_view_1}
+myDat[1:2, ]
+```
+
+```{r data_view_2}
+trainNo[1:10]
+```
+
+```{r data_view_3}
+table(myDat[trainNo, ]$Species) # training class label
+```
+
+```{r data_view_4}
+table(myDat[-trainNo,]$Species) # testing class label
+```
+
+## Fitting k-NN model for k = 1
+
+```{r one_NN}
+knn1 = knn(train=myDat[trainNo,1:4],
+           test=myDat[-trainNo,1:4],
+           cl=myDat$Species[trainNo],k=1)
+
+table(myDat$Species[-trainNo],knn1)
+```
+
+## Fitting k-NN model for k = 10
+
+```{r ten_NN}
+knn10 = knn(train=myDat[trainNo,1:4],
+            test=myDat[-trainNo,1:4],
+            cl=myDat$Species[trainNo],k=10)
+
+table(myDat$Species[-trainNo],knn10)
+```
+
+## Fitting k-NN model for k = 7
+
+```{r seven_NN}
+knn7 = knn(train=myDat[trainNo,1:4],
+           test=myDat[-trainNo,1:4],
+           cl=myDat$Species[trainNo],k=7,prob=TRUE)
+
+table(myDat$Species[-trainNo],knn7)
+```
+
+```{r seven_NN_speifics}
+attributes(knn7)
+```
+
+# Choosing the best k:
+
+Given that the data set is small enough to tryout various k's on k-NN model, for
+each k, randomly pick training/validation data, 100 times.
+
+```{r optimal_k}
+Rep = 100 # no. random training set
+K = 50 # Fit KNN models for k=1:K
+err=rep(0,K); errMat=matrix(0,Rep,K); # trainRate = 0.7
+set.seed = 329246
+
+for (r in 1:Rep) {
+  trainNo = sample(dim(myDat)[1],trainRate*dim(myDat)[1])
+  for (i in 1:K){
+    knnFit <- knn(train=myDat[trainNo,1:4],
+                  test=myDat[-trainNo,1:4],
+                  cl=myDat$Species[trainNo],k=i)
+    err[i] = 1- mean(knnFit == myDat[-trainNo,]$Species)
+    }
+  errMat[r,]=err
+}
+```
+
+## Plot Classification Error Rates for each k:
+
+```{r classification_error_plot_1}
+plot(1:K,ylim=c(0,.2),type="n",
+     ylab="Testing error rate",xlab="K neighbors",
+     main=paste("KNN iris ", trainRate, "training data"))
+points(1:K,colMeans(errMat),type="l",col=2,lwd=2)
+segments(1:K, colMeans(errMat)-sqrt(diag(cov(errMat))),
+         1:K, colMeans(errMat)+sqrt(diag(cov(errMat))),col= 'gray')
+```
+
+## Classification testing errors vary by training data proportion:
+
+```{r classification_error_plot_2}
+trainRates = c(0.85, 0.6, 0.45)
+
+par(mfrow = c(1, 3))
+
+for(tR in trainRates){
+  err=rep(0,K); errMat=matrix(0,Rep,K); 
+  set.seed = 329246
+  
+  for (r in 1:Rep) {
+    trainNo = sample(dim(myDat)[1],tR*dim(myDat)[1])
+    for (i in 1:K){
+      knnFit <- knn(train=myDat[trainNo,1:4],
+                    test=myDat[-trainNo,1:4],
+                    cl=myDat$Species[trainNo],k=i)
+      err[i] = 1- mean(knnFit == myDat[-trainNo,]$Species)
+      }
+    errMat[r,]=err
+  } 
+  plot(1:K,ylim=c(0,.2),type="n",
+       ylab="Testing error rate",xlab="K neighbors",
+       main=paste("KNN iris ", tR, "training data"))
+  points(1:K,colMeans(errMat),type="l",col=2,lwd=2)
+  segments(1:K, colMeans(errMat)-sqrt(diag(cov(errMat))),
+           1:K, colMeans(errMat)+sqrt(diag(cov(errMat))),col= 'gray')
+}
+```
+
+```{r classification_error_plot_3}
+trainRates2 = c(0.8, 0.7, 0.5)
+
+par(mfrow = c(1, 3))
+
+for(tR in trainRates2){
+  err=rep(0,K); errMat=matrix(0,Rep,K); 
+  set.seed = 329246
+  
+  for (r in 1:Rep) {
+    trainNo = sample(dim(myDat)[1],tR*dim(myDat)[1])
+    for (i in 1:K){
+      knnFit <- knn(train=myDat[trainNo,1:4],
+                    test=myDat[-trainNo,1:4],
+                    cl=myDat$Species[trainNo],k=i)
+      err[i] = 1- mean(knnFit == myDat[-trainNo,]$Species)
+      }
+    errMat[r,]=err
+  } 
+  plot(1:K,ylim=c(0,.2),type="n",
+       ylab="Testing error rate",xlab="K neighbors",
+       main=paste("KNN iris ", tR, "training data"))
+  points(1:K,colMeans(errMat),type="l",col=2,lwd=2)
+  segments(1:K, colMeans(errMat)-sqrt(diag(cov(errMat))),
+           1:K, colMeans(errMat)+sqrt(diag(cov(errMat))),col= 'gray')
+}
+```

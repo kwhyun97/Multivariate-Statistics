@@ -1,0 +1,299 @@
+---
+title: "LDA Demo"
+subtitle: "STAT 32950 Week 6"
+author: "Ki Hyun"
+output: html_notebook
+---
+
+```{r packages}
+library(MASS)
+```
+
+# Example: Classical `iris` data
+
+```{r data}
+data(iris)
+str(iris)
+```
+
+## Data Summary
+
+```{r data_summary}
+summary(iris)
+```
+
+## Choosing Feature Variables
+
+```{r features}
+attach(iris)
+X = iris[, 1:4] # Feature variables, used for classification
+Species = iris[, 5]
+```
+
+$$
+\Rightarrow \
+p = 4, \
+g = 3
+$$
+
+$$
+Classifier: \mathbf{R}^4 \rightarrow \{1, 2, 3\}
+$$
+
+## Data pairwise plots
+
+```{r pairwise_plots}
+pairs(X, main = "Pairwise Iris", 
+      pch = 22, bg = c("red", "yellow", "blue")[unclass(Species)])
+```
+
+## Sample Covariance Matrices
+
+```{r sample_covariance_matrices}
+levels(Species)=c(1:3)
+S1=cov(iris[Species==1,1:4])
+# S1=cov(subset(iris[,1:4], Species==1)) # same
+S2=cov(iris[Species==2,1:4])
+S3=cov(iris[Species==3,1:4])
+
+# pooled covariance
+Sp = (50 - 1)*(S1 + S2 + S3)/(150 - 3)
+```
+
+## Class Covariance Matrices
+
+```{r class_covariance}
+round(S1, 2); round(S2, 2); round(S3, 2)
+```
+
+## Pooled Covariance Matrix
+
+```{r S_pool}
+round(Sp, 2)
+```
+
+```{r S_pool_inv}
+round(solve(Sp), 2)
+```
+
+# Fisher's Linear Discriminants
+
+```{r lda}
+fit = lda(X,Species) #lda(Species~X[,1]+X[,2]+X[,3]+X[,4]),CV=F
+attributes(fit) # prior,counts,means,scaling,lev,svd,N
+```
+
+## Predicted Class Membership in (LD1, LD2)
+
+```{r lad_plot}
+plot(fit, col = rep(1:3, each = 50))
+```
+
+## Project to the 1st Discriminant Line
+
+```{r lda_project}
+plot(fit, dimen = 1)
+```
+
+## Linear Discriminant Properties and Normalization
+
+```{r lda_properties}
+fit$scaling # matrix[a_1 a_2]
+```
+
+```{r lda_normalization}
+t(fit$scaling) %*% Sp %*% fit$scaling # normalization a
+```
+
+## Posterior Probability of Membership
+
+```{r posterior}
+postprob = round(predict(fit, X)$posterior, 3)
+attributes(predict(fit, X))
+```
+
+```{r posterior_2}
+attributes(postprob)$dim
+```
+
+### Posterior Probability for Class 1
+
+```{r post_class1}
+par(mfrow=c(1,1))
+plot(1:150,predict(fit,X)$posterior[,1], cex=.4) #class1
+```
+
+### Posterior Probability for Class 2
+
+```{r post_class2}
+par(mfrow=c(1,1))
+plot(1:150,predict(fit,X)$posterior[,2], 
+     cex=.4, col=2, pch=2) #class2
+```
+
+### Posterior Probability for Class 3
+
+```{r post_class3}
+par(mfrow=c(1,1))
+plot(1:150,predict(fit,X)$posterior[,3], 
+     cex=.4, col=3, pch=3) #class3
+```
+
+## Classification by LDA
+
+```{r lda_classification}
+par(mfrow = c(1, 1))
+plot(1:150, predict(fit, X)$class, cex = .5) # err case 71, 84, 134
+```
+
+## Misclassification Case Details
+
+```{r lda_misclass}
+cbind(postprob[c(71,84,134),],Species[c(71,84,134)])
+```
+
+## Classification Proportions
+
+```{r proportions}
+# percentage of classification within each species
+ct=table(Species, predict(fit,X)$class) #cross-count table
+prop.table(ct, 1) # (., 1) row %; (., 2) col %
+```
+
+```{r correct_classification}
+diag(prop.table(ct, 1)) #correct classification by species
+```
+
+```{r correct_assignment_percentage}
+sum(diag(prop.table(ct)))
+```
+
+### Training Error - Apparent Error Rate (APER)
+
+```{r APER}
+ct
+```
+
+### Expected Actual Error Rate E(AER)
+
+```{r EAER}
+fitCV = lda(X, Species, CV = T)
+
+table(Species, fitCV$class)
+```
+
+## 2-variable LDA
+
+```{r two_v}
+fit12 = lda(Species ~ X[,1] + X[,2])
+
+table(Species, predict(fit12, X[, 1:2])$class)
+```
+
+```{r two_v_cv}
+fitCV12 = lda(Species~X[,1]+X[,2], CV=T)
+table(Species, fitCV12$class)
+```
+
+## 1-variable LDA
+
+```{r one_v_cv}
+fitCV4 = lda(Species~X[,4], CV=T)
+table(Species, fitCV4$class)
+```
+
+# Normal Populations (classification by min ECM)
+
+## Example: Three Normal Sub-populations
+
+```{r n_sub_pop}
+# Using two petal variables as predictors
+fit34=lda(Species~X[,3]+X[,4])
+# Obtain Spool (2 predictors)
+s1=cov(iris[Species==1,3:4]);
+s2=cov(iris[Species==2,3:4])
+s3=cov(iris[Species==3,3:4]);
+Sp2=(50-1)*(s1+s2+s3)/(150-3);
+Sp2
+```
+
+## Linear Discriminant Functions
+
+$$
+Get \
+\bar{x}_k, \ 
+k = 1, \cdots g \
+(g = 3)
+$$
+
+```{r ld_functions}
+X34mean=cbind(tapply(X[,3],iris$Species,sum)/50,
+              tapply(X[,4],iris$Species,sum)/50)
+X34mean
+```
+
+$$
+Get \
+\bar{x}_k' S^{-1}_{pool} \ in
+$$
+
+$$
+\hat{d}_k(x) = \bar{x}_k' S^{-1}_{pool} x
+-\frac{1}{2} \bar{x}_k' S^{-1}_{pool} \bar{x}_k
++ \ln(p_k)
+$$
+
+```{r ld_functions_2}
+slp = as.matrix((X34mean)%*%solve(Sp2))
+slp
+```
+
+$$
+Get \
+\frac{1}{2} \bar{x}_k' S^{-1}_{pool} \bar{x}_k
+$$
+
+```{r ld_functions_3}
+itc = diag((X34mean)%*%solve(Sp2)%*%t(X34mean))/2
+itc
+```
+
+$$
+Obtain \
+\hat{d}_k(x) = \bar{x}_k' S^{-1}_{pool} x
+-\frac{1}{2} \bar{x}_k' S^{-1}_{pool} \bar{x}_k
++ \ln(p_k)
+$$
+
+$$
+\hat{d}_1 = 8.5 x - 2.8 y - 5.9 + \log(1/3) \\
+\hat{d}_2 = 20.5 x + 10.7 y - 50.9 + \log(1/3) \\
+\hat{d}_3 = 24.6 x + 23.3 y - 91.9 + \log(1/3)
+$$
+
+$$
+Set \
+\hat{d}_1 = \hat{d}_2, \
+\hat{d}_2 = \hat{d}_3 \
+\hat{d}_3 = \hat{d}_1
+$$
+
+Solve for the incercepts and slopes of the intersection lines.
+
+```{r ld_functions_4}
+c(slp[1,]-slp[2,],slp[2,]-slp[3,],slp[3,]-slp[1,])
+```
+
+```{r ld_functions_5}
+c(itc[1]-itc[2],itc[2]-itc[3],itc[3]-itc[1])
+```
+
+## Plotting the Classification Borders
+
+```{r class_border_plot}
+# Plot the classification borders
+plot(iris[,3], iris[,4],col=rep(1:3,each=50))
+abline(45/13.6, -12/13.6) # set d1=d2
+abline(41/12.55, -4/12.55) # set d2=d3
+abline(86/26,-16/26,lty=2) # set d1=d3 (redundant)
+```
